@@ -1,0 +1,11 @@
+var ages LIST
+mov_vr ages lreg0
+mov_const 11 reg0
+push lreg0 reg0
+mov_const 65 reg0
+push lreg0 reg0
+mov_rv lreg0 ages
+mov_vr ages lreg0
+mov_rv lreg0 ages
+mov_vr ages lreg1
+print lreg1
