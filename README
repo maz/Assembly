@@ -1,3 +1,6 @@
 This is a toy virtual machine. It has a very limited instruction set. To run a program, run the binary as follows:
 ./assembly <source-file>
-Note, the compiler is for a higher-level language which I hope to eventually write. You run the souce files directly.
+You can run the .txt files directly.
+Note, the compiler is for a higher-level language which I have begun writing.
+You run the .pgrm files through the compiler to convert them into the assembly.
+A note about the compiler: everything goes to stdout. You must use redirection to output the code to a file.
