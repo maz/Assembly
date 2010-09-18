@@ -122,10 +122,8 @@ void Runner::exec(FILE *f){
 			Variables[name]=Value((type=="list"));
 		}else if(token=="label"){
 			read_token(f);
-		#ifdef DEBUG
-		}else if(token=="gdb"){
+		}else if(token=="exit"){
 			kill(getpid(),SIGINT);
-		#endif
 		}else if(token=="mov_const"){
 			token=read_token(f);
 			Number num=aton(token.c_str());
@@ -135,6 +133,20 @@ void Runner::exec(FILE *f){
 				*ptr=num;
 			}else{
 				print_error( "Unknown numerical register %s\n",token.c_str());
+				exit(1);
+			}
+		}else if(token=="mov_lr"){
+			token=read_token(f);
+			if(Labels.count(token)){
+				Number* ptr=GetRegValue(token);
+				if(ptr){
+					*ptr=Labels[token];
+				}else{
+					print_error( "Unknown numerical register %s\n",token.c_str());
+					exit(1);
+				}
+			}else{
+				print_error("The label %s does not exist\n",token.c_str());
 				exit(1);
 			}
 		}else if(token=="mov_vr"){
