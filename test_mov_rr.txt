@@ -1,0 +1,3 @@
+MOV 5 Reg0
+MOV Reg0 Reg6
+PRINT Reg6

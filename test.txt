@@ -9,3 +9,9 @@ MOV ages lreg0
 MOV lreg0 ages
 MOV ages lreg1
 print lreg1
+mov lreg1 stack
+mov -87 reg0
+print reg0
+MOV 0 reg0
+racc stack reg0 reg0
+print reg0

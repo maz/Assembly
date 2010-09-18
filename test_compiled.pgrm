@@ -1,0 +1,62 @@
+JMP func_main
+LABEL exit
+exit
+LABEL func_stuff
+
+
+MOV 76 Reg0
+
+PRINT Reg0
+
+
+SIZE stack Reg0
+NOT Reg0 Reg0
+CONDJMP Reg0 exit
+SIZE stack Reg0
+MOV 1 Reg1
+MINUS Reg0 Reg1 Reg0
+RACC stack Reg0 Reg0
+POP stack
+JMP Reg0
+LABEL func_main
+
+
+MOV 1 Reg0
+
+mov Reg0 Reg5
+MOV 2 Reg0
+
+mov Reg0 Reg6
+ADD Reg5 Reg6 Reg0
+
+mov Reg0 Reg5
+MOV 3 Reg0
+
+mov Reg0 Reg6
+MULT Reg5 Reg6 Reg0
+
+PRINT Reg0
+
+
+EMPTY params
+MOV_lr label_0 Reg0
+PUSH stack Reg0
+JMP func_stuff
+LABEL label_0
+
+
+
+MOV -9 Reg0
+
+PRINT Reg0
+
+
+SIZE stack Reg0
+NOT Reg0 Reg0
+CONDJMP Reg0 exit
+SIZE stack Reg0
+MOV 1 Reg1
+MINUS Reg0 Reg1 Reg0
+RACC stack Reg0 Reg0
+POP stack
+JMP Reg0

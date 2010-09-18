@@ -1,3 +1,8 @@
 assembly
 assembly.dSYM/*
 .DS_Store
+assembly.tab.c
+assembly.tab.h
+lex.yy.c
+compile
+compile.dSYM/*

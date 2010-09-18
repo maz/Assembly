@@ -1,0 +1,6 @@
+LABEL test
+MOV test Reg0
+Print reg0
+LABEL test2
+MOV_lr test2 Reg0
+PRint reg0

@@ -21,7 +21,7 @@ namespace Assembly {
 	
 	class Runner{
 	public:
-		Runner(){}
+		Runner(){next_debug=false;}
 		virtual ~Runner(){}
 		virtual void exec(FILE *f);
 	private:
@@ -29,11 +29,13 @@ namespace Assembly {
 		ValueList* GetListRegValue(std::string txt);
 		std::map<std::string,Value> Variables;
 		std::map<std::string,int> Labels;
-		Number Reg0,Reg1,Reg2,Reg3,Reg4,Reg5,Reg6;
+		Number Reg0,Reg1,Reg2,Reg3,Reg4,Reg5,Reg6,Return;
 		ValueList Stack,Parameters,LReg0,LReg1,LReg2,LReg3;
 		void do_jmp(FILE *f);
 		void PrintValueList(ValueList *lptr,int indent=0);
 		void lowercase(std::string &token);
+		void debug(FILE *source);
+		bool next_debug;
 	};
 }
 
