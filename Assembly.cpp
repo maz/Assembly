@@ -20,7 +20,7 @@ string Assembly::read_token(FILE *f){
 
 bool Assembly::str_is_num(string str){
 	for(int i=0;i<str.size();i++){
-		if(!isdigit(str[i]))
+		if(!(isdigit(str[i])||str[i]=='-'))
 			return false;
 	}
 	return true;

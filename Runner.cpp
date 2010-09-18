@@ -86,6 +86,14 @@ void Runner::lowercase(std::string &token){
 	}
 }
 
+/*
+Instructions:
+	Label     Print        Mov_lr    Pop_Front    Racc    Eq     Gt
+	Jmp       Exit         Mov_vr    Pop_Back     Add     Or     Lt
+	Cndjmp    Mov          Size      Push         Minus   And
+	Var       Mov_Const    Mov_rv    Not          Div     Mult
+*/
+
 void Runner::exec(FILE *f){
 	while(!feof(f)){
 		string token=read_token(f);
@@ -124,6 +132,22 @@ void Runner::exec(FILE *f){
 			read_token(f);
 		}else if(token=="exit"){
 			kill(getpid(),SIGINT);
+		}else if(token=="mov"){
+			string str="";
+			token=read_token(f);
+			if(str_is_num(token)){
+				str="mov_const "+token;
+			}else if(Labels.count(token)){
+				str="mov_lr "+token;
+			}else if(GetRegValue(token)||GetListRegValue(token)){
+				str="mov_rv "+token;
+			}else{
+				str="mov_vr "+token;
+			}
+			ungetc(' ',f);
+			for(int i=str.size()-1;i>-1;i--){
+				ungetc(str[i],f);
+			}
 		}else if(token=="mov_const"){
 			token=read_token(f);
 			Number num=aton(token.c_str());

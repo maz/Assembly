@@ -1,16 +1,16 @@
 VAR times INT
-MOV_CONST 0 REG0
-MOV_RV REG0 times
+MOV 0 REG0
+MOV REG0 times
 LABEL loop
-MOV_CONST 20 Reg1
-MOV_VR times Reg0
+MOV 20 Reg1
+MOV times Reg0
 EQUAL Reg0 Reg1 Reg1
 CONDJMP Reg1 end
 PRINT Reg0
-MOV_CONST 1 Reg1
+MOV 1 Reg1
 ADD REG0 REG1 REG0
-MOV_RV Reg0 times
+MOV Reg0 times
 JMP loop
 LABEL end
-MOV_CONST -5 Reg0
+MOV -5 Reg0
 PRINT Reg0
