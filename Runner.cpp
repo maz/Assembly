@@ -30,7 +30,7 @@ Number* Runner::GetRegValue(std::string txt){
 		return NULL;
 }
 
-#define print_error(...) fprintf(stderr,"From: %s line %d, function %s, file pos %d: ",__FILE__,__LINE__,__FUNCTION__,ftell(f));fprintf(stderr,__VA_ARGS__)
+#define handle_error(...) fprintf(stderr,"From: %s line %d, function %s, file pos %d: ",__FILE__,__LINE__,__FUNCTION__,ftell(f));fprintf(stderr,__VA_ARGS__);if(break_on_error){debug(f,true);}else{exit(1);}
 
 void Runner::do_jmp(FILE *f){
 	string token=read_token(f);
@@ -41,20 +41,22 @@ void Runner::do_jmp(FILE *f){
 		lowercase(token);
 		fseek(f, Labels[token], SEEK_SET);
 	}else{
-		print_error( "Label %s does not exist\n",token.c_str());
-		exit(1);
+		handle_error( "Label %s does not exist\n",token.c_str());
 	}
 }
 
-void Runner::debug(FILE *source){
+#define return {break_on_error=old;return;}
+void Runner::debug(FILE *source,bool only_check){
+	bool old=break_on_error;
+	break_on_error=false;
 	while(1){
-		char *line_buf=readline("debugger >> ");
+		char *line_buf=readline("debugger>> ");
 		if(!line_buf)
 			return;
 		if(strlen(line_buf)){
 			add_history(line_buf);
 			string line(line_buf);
-			if(line.substr(0,4)=="eval"||line.substr(0,4)=="exec"){
+			if(!only_check && (line.substr(0,4)=="eval"||line.substr(0,4)=="exec")){
 				line=line.substr(4);
 				FILE *f=tmpfile();
 				fprintf(f,"%s\n",line.c_str());
@@ -64,7 +66,11 @@ void Runner::debug(FILE *source){
 			}else{
 				lowercase(line);
 				if(line=="exit"){
-					return;
+					if(only_check){
+						exit(0);
+					}else{
+						return;
+					}
 				}else if(line=="dumpregisters"||line=="dump_registers"){
 					printf("%s: ","Reg0");
 					printf("%d\n",Reg0);
@@ -94,7 +100,7 @@ void Runner::debug(FILE *source){
 					PrintValueList(&LReg2);
 					printf("%s: ","LReg3");
 					PrintValueList(&LReg3);
-				}else if(line=="step"){
+				}else if(!only_check && line=="step"){
 					next_debug=true;
 					return;
 				}else if(line=="frame"){
@@ -120,12 +126,38 @@ void Runner::debug(FILE *source){
 					}
 					fputc('\n',stdout);
 					fseek(source,cur_pos,SEEK_SET);
+				}else{
+					char *data=strdup(line.c_str());
+					string cmd(strtok(data," "));
+					string var(strtok(NULL," "));
+					free(data);
+					lowercase(cmd);
+					if(cmd=="print"){
+						if(GetRegValue(var)){
+							printf("%d\n",*GetRegValue(var));
+						}else if(GetListRegValue(var)){
+							PrintValueList(GetListRegValue(var));
+						}else if(Labels.count(var)){
+							printf("%d\n",Labels[var]);
+						}else if(Variables.count(var)){
+							if(Variables[var].isList){
+								PrintValueList(&(Variables[var].list));
+							}else{
+								printf("%d\n",Variables[var].num);
+							}
+						}else{
+							fprintf(stderr,"Unknown variable %s\n",var.c_str());
+						}
+					}else{
+						fprintf(stderr,"Unknown debugger command \"%s\"\n",line.c_str());
+					}
 				}
 			}
 		}
 		free(line_buf);
 	}
 }
+#undef return;
 
 ValueList* Runner::GetListRegValue(string txt){
 	lowercase(txt);
@@ -210,8 +242,7 @@ void Runner::exec(FILE *f){
 					read_token(f);//get rid of the label to jump to
 				}
 			}else{
-				print_error( "Unknown numerical register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown numerical register %s\n",token.c_str());
 			}
 		}else if(token=="empty"){
 			token=read_token(f);
@@ -220,8 +251,7 @@ void Runner::exec(FILE *f){
 				while(lptr->size())
 					lptr->pop_front();
 			}else{
-				print_error( "Unknown list register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown list register %s\n",token.c_str());
 			}
 		}else if(token=="var"){
 			string name=read_token(f);
@@ -263,8 +293,7 @@ void Runner::exec(FILE *f){
 			if(ptr){
 				*ptr=num;
 			}else{
-				print_error( "Unknown numerical register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown numerical register %s\n",token.c_str());
 			}
 		}else if(token=="mov_rr"){
 			token=read_token(f);
@@ -273,8 +302,7 @@ void Runner::exec(FILE *f){
 				token=read_token(f);
 				ValueList *lptr2=GetListRegValue(token);
 				if(!lptr2){
-					print_error("Unknown list register %s\n",token.c_str());
-					exit(1);
+					handle_error("Unknown list register %s\n",token.c_str());
 				}
 				while(lptr2->size())
 					lptr2->pop_front();
@@ -287,12 +315,10 @@ void Runner::exec(FILE *f){
 					if(ptr1){
 						*ptr1=*ptr;
 					}else{
-						print_error( "Unknown numerical register %s\n",token.c_str());
-						exit(1);
+						handle_error( "Unknown numerical register %s\n",token.c_str());
 					}
 				}else{
-					print_error( "Unknown numerical register %s\n",token.c_str());
-					exit(1);
+					handle_error( "Unknown numerical register %s\n",token.c_str());
 				}
 			}
 		}else if(token=="mov_lr"){
@@ -304,18 +330,15 @@ void Runner::exec(FILE *f){
 				if(ptr){
 					*ptr=Labels[token];
 				}else{
-					print_error( "Unknown numerical register %s\n",token.c_str());
-					exit(1);
+					handle_error( "Unknown numerical register %s\n",token.c_str());
 				}
 			}else{
-				print_error("The label %s does not exist\n",token.c_str());
-				exit(1);
+				handle_error("The label %s does not exist\n",token.c_str());
 			}
 		}else if(token=="mov_vr"){
 			token=read_token(f);
 			if(!Variables.count(token)){
-				print_error( "Unknown variable %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown variable %s\n",token.c_str());
 			}
 			string name=token;
 			token=read_token(f);
@@ -333,32 +356,28 @@ void Runner::exec(FILE *f){
 				if(ptr){
 					*ptr=Variables[name].num;
 				}else{
-					print_error( "Unknown numerical register %s\n",token.c_str());
-					exit(1);
+					handle_error( "Unknown numerical register %s\n",token.c_str());
 				}
 			}
 		}else if(token=="size"){
 			token=read_token(f);
 			ValueList *lptr=GetListRegValue(token);
 			if(!lptr){
-				print_error( "Unknown list register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown list register %s\n",token.c_str());
 			}
 			token=read_token(f);
 			Number* ptr=GetRegValue(token);
 			if(ptr){
 				*ptr=lptr->size();
 			}else{
-				print_error( "Unknown numerical register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown numerical register %s\n",token.c_str());
 			}
 		}else if(token=="mov_rv"){
 			token=read_token(f);
 			ValueList *lptr=GetListRegValue(token);
 			string name=read_token(f);
 			if(!Variables.count(name)){
-				print_error( "Unknown variable %s\n",name.c_str());
-				exit(1);
+				handle_error( "Unknown variable %s\n",name.c_str());
 			}
 			if(lptr){
 				while(Variables[name].list.size())
@@ -373,22 +392,19 @@ void Runner::exec(FILE *f){
 				if(ptr){
 					Variables[name].num=*ptr;
 				}else{
-					print_error( "Unknown numerical register %s\n",token.c_str());
-					exit(1);
+					handle_error( "Unknown numerical register %s\n",token.c_str());
 				}
 			}
 		}else if(token=="not"){
 			token=read_token(f);
 			Number *a=GetRegValue(token);
 			if(!a){
-				print_error( "Unknown numerical register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown numerical register %s\n",token.c_str());
 			}
 			token=read_token(f);
 			Number *b=GetRegValue(token);
 			if(!b){
-				print_error( "Unknown numerical register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown numerical register %s\n",token.c_str());
 			}
 			*b=!*a;
 		}else if(token=="print"){
@@ -399,8 +415,7 @@ void Runner::exec(FILE *f){
 			}else{
 				Number* ptr=GetRegValue(token);
 				if(!ptr){
-					print_error( "Unknown numerical register %s\n",token.c_str());
-					exit(1);
+					handle_error( "Unknown numerical register %s\n",token.c_str());
 				}
 				printf("%d\n",*ptr);
 			}
@@ -408,19 +423,16 @@ void Runner::exec(FILE *f){
 			token=read_token(f);
 			ValueList *lptr=GetListRegValue(token);
 			if(!lptr){
-				print_error( "Unknown list register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown list register %s\n",token.c_str());
 			}
 			token=read_token(f);
 			ValueList *nptr=GetListRegValue(token);
 			if(nptr){
-				print_error("multi-dimentional lists not yet fully implemented\n");
-				exit(1);
+				handle_error("multi-dimentional lists not yet fully implemented\n");
 			}else{
 				Number* ptr=GetRegValue(token);
 				if(!ptr){
-					print_error( "Unknown numerical register %s\n",token.c_str());
-					exit(1);
+					handle_error( "Unknown numerical register %s\n",token.c_str());
 				}
 				Value val(false);
 				val.num=*ptr;
@@ -430,32 +442,28 @@ void Runner::exec(FILE *f){
 			token=read_token(f);
 			ValueList *lptr=GetListRegValue(token);
 			if(!lptr){
-				print_error( "Unknown list register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown list register %s\n",token.c_str());
 			}
 			lptr->pop_back();
 		}else if(token=="pop_front"){
 			token=read_token(f);
 			ValueList *lptr=GetListRegValue(token);
 			if(!lptr){
-				print_error( "Unknown list register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown list register %s\n",token.c_str());
 			}
 			lptr->pop_front();
 		}else if(token=="racc"){
 			token=read_token(f);
 			ValueList *lptr=GetListRegValue(token);
 			if(!lptr){
-				print_error( "Unknown list register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown list register %s\n",token.c_str());
 			}
 			token=read_token(f);
 			Number* ptr=GetRegValue(token);
 			if(ptr){
 				int num=*ptr;
 				if(num>=lptr->size()){
-					print_error("Index %d exceeded list size: %d\n",num,lptr->size());
-					exit(1);
+					handle_error("Index %d exceeded list size: %d\n",num,lptr->size());
 				}
 				ValueList::iterator iter=lptr->begin();
 				while(num){
@@ -466,8 +474,7 @@ void Runner::exec(FILE *f){
 				if((*iter).isList){
 					ValueList *nptr=GetListRegValue(token);
 					if(!nptr){
-						print_error( "Unknown list register %s\n",token.c_str());
-						exit(1);
+						handle_error( "Unknown list register %s\n",token.c_str());
 					}
 					lptr=&((*iter).list);
 					while(nptr->size())
@@ -480,34 +487,29 @@ void Runner::exec(FILE *f){
 				}else{
 					Number* ptr=GetRegValue(token);
 					if(!ptr){
-						print_error( "Unknown numerical register %s\n",token.c_str());
-						exit(1);
+						handle_error( "Unknown numerical register %s\n",token.c_str());
 					}
 					*ptr=(*iter).num;
 				}
 			}else{
-				print_error( "Unknown numerical register %s\n",token.c_str());
-				exit(1);
+				handle_error( "Unknown numerical register %s\n",token.c_str());
 			}
 		}
 #define MATH_OP(name,op) else if(token==name){ \
 		token=read_token(f); \
 		Number *a=GetRegValue(token); \
 		if(!a){ \
-			print_error( "Unknown numerical register %s\n",token.c_str()); \
-			exit(1); \
+			handle_error( "Unknown numerical register %s\n",token.c_str()); \
 		} \
 		token=read_token(f); \
 		Number *b=GetRegValue(token); \
 		if(!b){ \
-			print_error( "Unknown numerical register %s\n",token.c_str()); \
-			exit(1); \
+			handle_error( "Unknown numerical register %s\n",token.c_str()); \
 		} \
 		token=read_token(f); \
 		Number *c=GetRegValue(token); \
 		if(!c){ \
-			print_error( "Unknown numerical register %s\n",token.c_str()); \
-			exit(1); \
+			handle_error( "Unknown numerical register %s\n",token.c_str()); \
 		} \
 		*c=(*a op *b); \
 		}
@@ -524,8 +526,7 @@ void Runner::exec(FILE *f){
 		MATH_OP("lt", < )
 #undef MATH_OP
 		else{
-			print_error("Commnad %s does not exist\n",token.c_str());
-			exit(1);
+			handle_error("Commnad %s does not exist\n",token.c_str());
 		}
 	}
 }

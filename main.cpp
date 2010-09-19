@@ -10,12 +10,21 @@ int main (int argc, char * const argv[]) {
 		fprintf(stderr, "At least one argument required\n");
 		return 1;
 	}
-	FILE *f=fopen(argv[1],"r");
+	bool debug=false;
+	int i;
+	for(i=1;i<argc;i++){
+		if(!strcmp(argv[i],"-debug")){
+			debug=true;
+		}else{
+			break;
+		}
+	}
+	FILE *f=fopen(argv[i],"r");
 	if(!f){
 		perror("Assembly");
 		return 1;
 	}
-	Assembly::Runner run;
+	Assembly::Runner run(debug);
 	run.exec(f);
 	fclose(f);
     return 0;

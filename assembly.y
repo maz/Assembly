@@ -38,8 +38,8 @@ int main(int argc, char **argv)
 	} reg;
 }
 
-%token<txt> PRINT RETURN END IDENTIFIER FUNC VAR OPAREN CPAREN COMMA
-%token<txt> NUMBER EQUAL ADD SUB MULT DIV LT GT EQUAL_EQUAL NOT OR AND
+%token<txt> PRINT RETURN END IDENTIFIER FUNC VAR OPAREN CPAREN COMMA IF
+%token<txt> NUMBER EQUAL ADD SUB MULT DIV LT GT EQUAL_EQUAL NOT OR AND WHILE ELSE
 %right EQUAL EQUAL_EQUAL LT GT NOT OR AND
 %left SUB ADD
 %left MULT DIV
@@ -60,7 +60,10 @@ global: function
 expr_list: expr{$$=NULL;}
 	| expr_list COMMA expr{$$=NULL;}
 	;
-expr: NUMBER{
+expr: expr SUB expr{
+		asprintf(&$$.setup,"%s\nmov %s Reg5\n%s\nmov %s Reg6\n%s Reg5 Reg6 Reg0\n",$1.setup,$1.name,$3.setup,$3.name,"SUB");asprintf(&$$.name,"Reg0");
+	}
+	|NUMBER{
 		asprintf(&$$.setup,"MOV %s Reg0\n",$1);
 		asprintf(&$$.name,"Reg0");
 	}
@@ -79,9 +82,6 @@ expr: NUMBER{
 	}
 	| OPAREN expr CPAREN{
 		$$=$2;
-	}
-	| expr SUB expr{
-		asprintf(&$$.setup,"%s\nmov %s Reg5\n%s\nmov %s Reg6\n%s Reg5 Reg6 Reg0\n",$1.setup,$1.name,$3.setup,$3.name,"SUB");asprintf(&$$.name,"Reg0");
 	}
 	| expr MULT expr{
 		asprintf(&$$.setup,"%s\nmov %s Reg5\n%s\nmov %s Reg6\n%s Reg5 Reg6 Reg0\n",$1.setup,$1.name,$3.setup,$3.name,"MULT");asprintf(&$$.name,"Reg0");
@@ -125,6 +125,11 @@ statement: variable
 	}
 	| expr{
 		asprintf(&$$,"%s\n",$1.setup);
+	}
+	| WHILE expr statements END{
+		int cur=current_label++;
+		int after=current_label++;
+		asprintf(&$$,"LABEL label_%d\n%s\nCNDJMP %s label_%d\n%s\nJMP label_%d\nLABEL label_%d",cur,$2.setup,$2.name,after,$3,cur,after);
 	}
 	;
 statements: statements statement{

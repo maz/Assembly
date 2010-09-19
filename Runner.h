@@ -21,7 +21,7 @@ namespace Assembly {
 	
 	class Runner{
 	public:
-		Runner(){next_debug=false;}
+		Runner(bool boe=false){next_debug=false;break_on_error=boe;}
 		virtual ~Runner(){}
 		virtual void exec(FILE *f);
 	private:
@@ -34,8 +34,9 @@ namespace Assembly {
 		void do_jmp(FILE *f);
 		void PrintValueList(ValueList *lptr,int indent=0);
 		void lowercase(std::string &token);
-		void debug(FILE *source);
+		void debug(FILE *source,bool only_check=false);
 		bool next_debug;
+		bool break_on_error;
 	};
 }
 

@@ -4,9 +4,39 @@ exit
 LABEL func_stuff
 
 
-MOV 76 Reg0
+VAR i int
 
+
+MOV 0 Reg0
+
+MOV i Reg0
+
+mov i Reg0
+mov Reg0 Reg5
+MOV 1 Reg0
+
+mov Reg0 Reg6
+ADD Reg5 Reg6 Reg0
+
+MOV i Reg0
+
+mov i Reg0
 PRINT Reg0
+
+
+MOV 20 Reg0
+
+MOV Reg0 return
+SIZE stack Reg0
+NOT Reg0 Reg0
+CONDJMP Reg0 exit
+SIZE stack Reg0
+MOV 1 Reg1
+MINUS Reg0 Reg1 Reg0
+RACC stack Reg0 Reg0
+POP stack
+JMP Reg0
+
 
 
 SIZE stack Reg0
@@ -44,6 +74,7 @@ PUSH stack Reg0
 JMP func_stuff
 LABEL label_0
 
+PRINT return
 
 
 MOV -9 Reg0

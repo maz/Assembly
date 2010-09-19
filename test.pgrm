@@ -1,8 +1,12 @@
 func stuff()
-	print 76
+	var i int
+	i=0
+	i=i+1
+	print i
+	return 20
 end
 func main()
 	print (1+2)*3
-	stuff()
+	print stuff()
 	print -9
 end
