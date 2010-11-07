@@ -1,6 +1,6 @@
 func stuff()
 	var i int
-	i=0
+	i=15
 	i=i+1
 	print i
 	return 20

@@ -232,6 +232,12 @@ void Runner::exec(FILE *f){
 		lowercase(token);
 		if(token=="jmp"){
 			do_jmp(f);
+		}else if(token=="halt" || token=="exit"){
+			token=read_token(f);
+			int retCode=0;
+			if(token.size())
+				retCode=atoi(token.c_str());
+			exit(retCode);
 		}else if(token=="cndjmp"||token=="condjmp"||token=="cond_jmp"){
 			token=read_token(f);
 			int* ptr=GetRegValue(token);
@@ -260,8 +266,6 @@ void Runner::exec(FILE *f){
 			Variables[name]=Value((type=="list"));
 		}else if(token=="label"){
 			read_token(f);
-		}else if(token=="exit"){
-			exit(0);
 		}else if(token=="debugger"){
 			next_debug=true;
 		}else if(token=="mov"){

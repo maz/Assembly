@@ -7,9 +7,9 @@ LABEL func_stuff
 VAR i int
 
 
-MOV 0 Reg0
+MOV 15 Reg0
 
-MOV i Reg0
+MOV Reg0 i
 
 mov i Reg0
 mov Reg0 Reg5
@@ -18,7 +18,7 @@ MOV 1 Reg0
 mov Reg0 Reg6
 ADD Reg5 Reg6 Reg0
 
-MOV i Reg0
+MOV Reg0 i
 
 mov i Reg0
 PRINT Reg0
@@ -49,7 +49,6 @@ RACC stack Reg0 Reg0
 POP stack
 JMP Reg0
 LABEL func_main
-
 
 MOV 1 Reg0
 

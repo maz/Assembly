@@ -11,8 +11,13 @@
 	void count();
 %}
 
+%x COMMENT
 %%
 <<EOF>>						{count();yyterminate();}
+<COMMENT>\n					{count();BEGIN(INITIAL);}
+<COMMENT>[^\n]+				{count();}
+<INITIAL>";"				{count();BEGIN(COMMENT);}
+<INITIAL>"//"				{count();BEGIN(COMMENT);}
 end							count();return END;
 func						count();return FUNC;
 var							count();return VAR;

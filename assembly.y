@@ -69,7 +69,7 @@ expr: expr SUB expr{
 	}
 	| IDENTIFIER OPAREN expr_list CPAREN{$$.setup=NULL;$$.name=NULL;}
 	| IDENTIFIER OPAREN CPAREN{
-		int num=current_label++;
+		int num=(current_label++);
 		asprintf(&$$.setup,"EMPTY params\nMOV_lr label_%d Reg0\nPUSH stack Reg0\nJMP func_%s\nLABEL label_%d\n",num,$1,num);
 		asprintf(&$$.name,"return");
 	}
@@ -121,7 +121,7 @@ statement: variable
 		asprintf(&$$,"%s\n",BLANKET_RETURN);
 	}
 	| IDENTIFIER EQUAL expr{
-		asprintf(&$$,"%s\nMOV %s %s",$3.setup,$1,$3.name);
+		asprintf(&$$,"%s\nMOV %s %s",$3.setup,$3.name,$1);
 	}
 	| expr{
 		asprintf(&$$,"%s\n",$1.setup);
