@@ -4,3 +4,5 @@ You can run the .txt files directly.
 Note, the compiler is for a higher-level language which I have begun writing.
 You run the .pgrm files through the compiler to convert them into the assembly.
 A note about the compiler: everything goes to stdout. You must use redirection to output the code to a file.
+
+The compiler is a work-in-progress. Currently expressions such as "i=i+1" do not work. Function calls work with return value. Arguments are not yet implemented. Additionally, there is no scope for variables. All variables are currently global. I am working on a fix where you can push and pop variables (types: list or int, and values) on and off a stack to fix this issue.
